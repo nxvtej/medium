@@ -13,13 +13,23 @@ app.get('/', (c) => {
   return c.text('Hello Hono!')
 })
 
-app.post('/api/v1/signup', (c) => {
-  const dbUrl = c.env.DATABASE_URL,
+app.post('/api/v1/signup', async (c) => {
+  const dbUrl = c.env.DATABASE_URL
   const prisma = new PrismaClient({
     datasourceUrl: dbUrl,
   }).$extends(withAccelerate())
+
+  const body = await c.req.json();
+
+  await prisma.user.create({
+    data: {
+      email: body.email,
+      password: body.password,
+    },
+  })
   return c.text('signup route')
 })
+
 
 app.post('/api/v1/signin', (c) => {
   return c.text('signin route')
