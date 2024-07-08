@@ -38,8 +38,30 @@ app.post('/api/v1/signup', async (c) => {
 })
 
 
-app.post('/api/v1/signin', (c) => {
-  return c.text('signin route')
+app.post('/api/v1/signin', async (c) => {
+  const dbUrl = c.env.DATABASE_URL
+  const prisma = new PrismaClient({
+    datasourceUrl: dbUrl,
+  }).$extends(withAccelerate())
+
+  const body = await c.req.json();
+  const user = await prisma.user.findUnique({
+    where: {
+      email: body.email,
+      password: body.password
+    }
+  })
+
+  if (!user) {
+    c.status(403);
+    return c.json({
+      error: "user not found"
+    })
+  }
+
+  const jwtKey = c.env.JWT_SECRET
+  const token = await sign({ id: user.id }, jwtKey);
+  return c.json(token)
 })
 
 app.post('/api/v1/blog', (c) => {
