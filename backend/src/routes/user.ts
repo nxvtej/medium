@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { decode, sign, jwt, verify } from 'hono/jwt'
-import { signupInput } from '@nxvtej/medium-common'
+import { signupInput, signinInput } from '@nxvtej/medium-common'
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -18,11 +18,6 @@ export const userRouter = new Hono<{
 
 
 userRouter.post('/signup', async (c) => {
-    const dbUrl = c.env.DATABASE_URL
-    const prisma = new PrismaClient({
-        datasourceUrl: dbUrl,
-    }).$extends(withAccelerate())
-
     const body = await c.req.json();
     const { success } = signupInput.safeParse(body);
     if (!success) {
@@ -30,6 +25,10 @@ userRouter.post('/signup', async (c) => {
         console.log("inside the signup node moduloe not working properly");
         return c.text("invalid username");
     }
+    const dbUrl = c.env.DATABASE_URL
+    const prisma = new PrismaClient({
+        datasourceUrl: dbUrl,
+    }).$extends(withAccelerate())
 
 
 
@@ -38,6 +37,7 @@ userRouter.post('/signup', async (c) => {
             data: {
                 email: body.email,
                 password: body.password,
+                name: body.name
             },
         })
 
@@ -49,34 +49,50 @@ userRouter.post('/signup', async (c) => {
     } catch (e) {
         c.status(411);
         console.log(e);
-        return c.text("invalid username");
+        return c.text("invalid");
     }
 
 })
 
 
 userRouter.post('/signin', async (c) => {
+    const body = await c.req.json();
+    const { success } = signinInput.safeParse(body);
+    if (!success) {
+        c.status(411);
+        console.log("inside the signin node moduloe not working properly");
+        return c.text("invalid username");
+    }
     const dbUrl = c.env.DATABASE_URL
     const prisma = new PrismaClient({
         datasourceUrl: dbUrl,
     }).$extends(withAccelerate())
 
-    const body = await c.req.json();
-    const user = await prisma.user.findUnique({
-        where: {
-            email: body.email,
-            password: body.password
-        }
-    })
 
-    if (!user) {
-        c.status(403);
-        return c.json({
-            error: "user not found"
+    try {
+
+        const user = await prisma.user.findFirst({
+            where: {
+                email: body.email,
+                password: body.password
+            }
         })
+
+        if (!user) {
+            c.status(403);
+            return c.json({
+                error: "user not found"
+            })
+        }
+        const jwtKey = c.env.JWT_SECRET
+        const token = await sign({ id: user.id }, jwtKey);
+        return c.text(token)
+    }
+    catch (e) {
+        console.log(e);
+        c.status(411);
+        return c.text("user not found")
+
     }
 
-    const jwtKey = c.env.JWT_SECRET
-    const token = await sign({ id: user.id }, jwtKey);
-    return c.text(token)
 })

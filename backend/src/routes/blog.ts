@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { decode, sign, jwt, verify } from 'hono/jwt'
 import { userRouter } from './user'
+import { createBlogInput, updateBlogInput } from '@nxvtej/medium-common'
 
 export const blogRouter = new Hono<{
     Bindings: {
@@ -35,13 +36,14 @@ blogRouter.use('/*', async (c, next) => {
 
         const payload = await verify(token, jwtKey);
         if (!payload) {
-            c.status(401);
+            c.status(403);
             c.json({
                 error: "Unauthorized"
             })
         }
 
         // other wise its a valid user so set the id 
+        // @ts-ignore
         c.set('userId', payload.id);
 
 
@@ -57,7 +59,7 @@ blogRouter.post('/', async (c) => {
     console.log('User ID from JWT:', userId);
 
     if (!userId) {
-        c.status(400);
+        c.status(411);
         return c.json({
             error: "User ID is missing from the request."
         });
@@ -65,6 +67,14 @@ blogRouter.post('/', async (c) => {
 
     const dbUrl = c.env.DATABASE_URL;
     const body = await c.req.json();
+    const { success } = createBlogInput.safeParse(body);
+
+    if (!success) {
+        c.status(411);
+        console.log("inside the createBlogInput node moduloe not working properly");
+        return c.text("invalid createBloginput");
+    }
+
     const prisma = new PrismaClient({
         datasourceUrl: dbUrl,
     }).$extends(withAccelerate());
@@ -93,12 +103,21 @@ blogRouter.post('/', async (c) => {
 
 
 
-blogRouter.put('/xya', async (c) => {
+blogRouter.put('/', async (c) => {
     console.log('put blog route')
 
     const userId = c.get('userId');
     const dbUrl = c.env.DATABASE_URL
     const body = await c.req.json();
+
+    const { success } = updateBlogInput.safeParse(body);
+
+    if (!success) {
+        c.status(411);
+        console.log("inside the updateInput node moduloe not working properly");
+        return c.text("invalid updateBlogInput");
+    }
+
     const prisma = new PrismaClient({
         datasourceUrl: dbUrl,
     }).$extends(withAccelerate())
