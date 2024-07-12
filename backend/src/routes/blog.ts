@@ -2,8 +2,7 @@
 import { Hono } from 'hono'
 import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
-import { decode, sign, jwt, verify } from 'hono/jwt'
-import { userRouter } from './user'
+import { sign, verify } from 'hono/jwt'
 import { createBlogInput, updateBlogInput } from '@nxvtej/medium-common'
 
 export const blogRouter = new Hono<{
