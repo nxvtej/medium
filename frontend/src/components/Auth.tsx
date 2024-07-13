@@ -1,15 +1,33 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { SignupInput } from "@nxvtej/medium-common";
-import React, { ChangeEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { ChangeEvent, useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import  axios  from "axios";
+import { BACKEND_URL } from "../config";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
+	const navigate = useNavigate();
+	// getting little tricky now to generalize this as type here are of signup needs to be
+	// of signin inputs 
+
 	const [postInputs, setPostInputs] = useState<SignupInput>({
 		name: "",
 		email: "",
 		password: "",
 	});
+
+	async function sendRequest() {
+		try {
+
+			const response = await axios.post(`${BACKEND_URL}/api/v1/user/${type === "signup" ? "signup" : "signin"}`, postInputs)
+			const jwt = response.data;
+			localStorage.setItem("token", jwt);
+			navigate("/blogs");
+		} catch(e){
+			{type === "signin" ? alert("Error while sign-in") : alert("Error while sign-up")}
+		}
+	}
 
 	return (
 		<div className='h-screen flex flex-col justify-center'>
@@ -28,7 +46,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 					</div>
 
 					<div className='pt-10'>
-						<LabelledInput
+						{type === "signup" ? <LabelledInput
 							label='Name'
 							placeholder='Navdeep Singh....'
 							onChange={(e) => {
@@ -37,7 +55,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 									name: e.target.value,
 								});
 							}}
-						/>
+						/> : null}
 
 						<LabelledInput
 							label='Email'
@@ -57,12 +75,13 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 							onChange={(e) => {
 								setPostInputs({
 									...postInputs,
-									name: e.target.value,
+									password: e.target.value,
 								});
 							}}
 						/>
 
 						<button
+						onClick={sendRequest}
 							type='button'
 							className=' mt-4 w-full text-white bg-gray-800
 										hover:bg-gray-900 focus:outline-none focus:ring-4
