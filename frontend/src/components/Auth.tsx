@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { SignupInput } from "@nxvtej/medium-common";
 import { ChangeEvent, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import  axios  from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { BACKEND_URL } from "../config";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 	const navigate = useNavigate();
 	// getting little tricky now to generalize this as type here are of signup needs to be
-	// of signin inputs 
+	// of signin inputs
 
 	const [postInputs, setPostInputs] = useState<SignupInput>({
 		name: "",
@@ -19,13 +19,19 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 
 	async function sendRequest() {
 		try {
-
-			const response = await axios.post(`${BACKEND_URL}/api/v1/user/${type === "signup" ? "signup" : "signin"}`, postInputs)
+			const response = await axios.post(
+				`${BACKEND_URL}/api/v1/user/${type === "signup" ? "signup" : "signin"}`,
+				postInputs
+			);
 			const jwt = response.data;
 			localStorage.setItem("token", jwt);
 			navigate("/blogs");
-		} catch(e){
-			{type === "signin" ? alert("Error while sign-in") : alert("Error while sign-up")}
+		} catch (e) {
+			{
+				type === "signin"
+					? alert("Error while sign-in")
+					: alert("Error while sign-up");
+			}
 		}
 	}
 
@@ -36,26 +42,34 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 					<div className='px-10'>
 						<div className='text-3xl font-extrabold'>Create an Account</div>
 						<div className='text-slate-400'>
-							{type === "signup" ? `Already have an account? `: "Don't have an account? "}
-							{type === "signup" ? <Link to={"/signin"} className='pl-2 underline'>
-								Login
-							</Link> : <Link to={"/signup"} className='pl-2 underline'>
-								Sign Up
-							</Link>}
+							{type === "signup"
+								? `Already have an account? `
+								: "Don't have an account? "}
+							{type === "signup" ? (
+								<Link to={"/signin"} className='pl-2 underline'>
+									Login
+								</Link>
+							) : (
+								<Link to={"/signup"} className='pl-2 underline'>
+									Sign Up
+								</Link>
+							)}
 						</div>
 					</div>
 
 					<div className='pt-10'>
-						{type === "signup" ? <LabelledInput
-							label='Name'
-							placeholder='Navdeep Singh....'
-							onChange={(e) => {
-								setPostInputs({
-									...postInputs,
-									name: e.target.value,
-								});
-							}}
-						/> : null}
+						{type === "signup" ? (
+							<LabelledInput
+								label='Name'
+								placeholder='Navdeep Singh....'
+								onChange={(e) => {
+									setPostInputs({
+										...postInputs,
+										name: e.target.value,
+									});
+								}}
+							/>
+						) : null}
 
 						<LabelledInput
 							label='Email'
@@ -81,7 +95,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 						/>
 
 						<button
-						onClick={sendRequest}
+							onClick={sendRequest}
 							type='button'
 							className=' mt-4 w-full text-white bg-gray-800
 										hover:bg-gray-900 focus:outline-none focus:ring-4
