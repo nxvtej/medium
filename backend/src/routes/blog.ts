@@ -31,8 +31,9 @@ blogRouter.use('/*', async (c, next) => {
     try {
 
         const jwtKey = c.env.JWT_SECRET
-        const token = jwtToken.split(' ')[1];
-
+        // const token = jwtToken.split(' ')[1];
+        const token = jwtToken;
+        console.log("token is ", token);
         const payload = await verify(token, jwtKey);
         if (!payload) {
             c.status(403);
@@ -43,6 +44,7 @@ blogRouter.use('/*', async (c, next) => {
 
         // other wise its a valid user so set the id 
         // @ts-ignore
+        console.log("payloadid is ", payload.id);
         c.set('userId', payload.id);
 
 
