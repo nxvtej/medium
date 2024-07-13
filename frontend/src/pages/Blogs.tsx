@@ -1,18 +1,31 @@
 import { BlogCard } from "../components/BlogCard";
 import { Appbar } from "../components/Appbar";
 import { useBlogs } from "../hooks";
+import { Skeleton } from "../components/Skeleton";
 
 export const Blogs = () => {
 	const { loading, blogs } = useBlogs();
 
 	if (loading) {
-		return <div>loading...</div>;
+		return (
+			<div>
+				<Appbar />
+				<div className='flex justify-center'>
+					<div>
+						<Skeleton />
+						<Skeleton />
+						<Skeleton />
+					</div>
+				</div>
+			</div>
+		);
 	}
 	return (
 		<div>
 			<Appbar />
 			<div className='flex justify-center'>
 				<div className=''>
+					{/* @ts-expect-error */}
 					{blogs.map((blog) => (
 						<BlogCard
 							id={blog.id}
