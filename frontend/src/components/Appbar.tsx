@@ -10,7 +10,6 @@ export const Appbar = () => {
             <div>
                 <Avatar size={"small"} name="Navdeep"/>
             </div>
-
         </div>
     )
 }
